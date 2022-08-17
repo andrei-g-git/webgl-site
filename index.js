@@ -7,14 +7,13 @@ function init(){
     const app = new PIXI.Application({width: 720, height: 480, view: canvasElement});
     document.body.appendChild(app.view);
 
-    const destination = makeVideoSprite(/* "https://ak.picdn.net/shutterstock/videos/7109863/preview/stock-footage--k-old-film-style-seconds-countdown.webm" */"video-3.mp4", app);
-    const source = makeVideoSprite(/* "https://ak.picdn.net/shutterstock/videos/1734604/preview/stock-footage-party-countdown-seconds.webm" */"video-2.mp4", app);
+    const destination = makeVideoSprite("video-3.mp4", app);
+    const source = makeVideoSprite("video-2.mp4", app);
 
     const point = new PIXI.Point(0, 0);
     getMousePos(app.view, point);
 
-    const unif = {distortion: 0};
-    const shader = new PIXI.Filter(getVert(), getFrag(), getUniforms(source.texture, point, 0.3, -3.0/* unif.distortion */)); //the distortion is passed only once
+    const shader = new PIXI.Filter(getVert(), getFrag(), getUniforms(source.texture, point, 0.3, -3.0)); 
 
     destination.filters = [
         shader
@@ -22,15 +21,16 @@ function init(){
 
     app.stage.addChild(destination);   
 
-    
-
-    document.body.appendChild(makeButton("+", +0.3, unif));
-    document.body.appendChild(makeButton("-", -0.3, unif));
+    document.body.appendChild(makeButton("+", +0.3, shader.uniforms));
+    document.body.appendChild(makeButton("-", -0.3, shader.uniforms));
 }
 
 
-const handleClick = (increment, uniformObject) =>{
-    uniformObject.distortion = Math.min(Math.max(uniformObject.distortion + increment, -3.0), 3.0);
+const handleClick = (increment, uniforms) =>{
+    console.log("clicked");
+    uniforms.distortion = Math.min(Math.max(uniforms.distortion + increment, -3.0), 3.0);
+    console.log(uniforms.distortion);
+    
     
 }
 
@@ -49,22 +49,23 @@ const makeVideoSprite = (video, app) => {
     return videoSprite;
 };
 
-const makeButton = (name, increment, uniformObject) => {
+const makeButton = (name, increment, uniforms) => {
     const button = document.createElement("button");
     button.appendChild(document.createTextNode(name));
-    button.onClick = handleClick(increment, uniformObject);
+    button.onclick = () => handleClick(increment, uniforms);
 
     return button;
 }
 
+
 const getMousePos = (element, pixiPoint) => {
-    element?.addEventListener(/* "mouseover" *//* "dragstart" */"click", (event) => {
+    element?.addEventListener("mousemove", (event) => {
         var rect = event.target.getBoundingClientRect();
         pixiPoint.x = (event.clientX - rect.left) / element.width; 
         pixiPoint.y = (event.clientY - rect.top) / element.height;  
         console.log("Left? : " + pixiPoint.x + " ; Top? : " + pixiPoint.y + ".");     
     });
-    return pixiPoint;//positionObject;
+    return pixiPoint;
 }
 
 const getUniforms = (tex, mousePos, circleRad, distortion) => {
@@ -100,7 +101,7 @@ uniform sampler2D uSampler;
 uniform sampler2D sourceTex;
 uniform vec2 point;
 uniform float radius;
-/////////////////////////////////////   uniform float distortion;
+uniform float distortion;
 
 float uvDistFromPoint(vec2 uv){
     vec2 relative = uv - point;
@@ -121,7 +122,7 @@ void main(){
     float k = -0.15;
 
     float f = 0.0;
-    float distortion = -2.8;     //<--------------------------------------------------
+    /////// float distortion = -2.8;     //<--------------------------------------------------
 
     //only compute the cubic distortion if necessary
     if (distortion == 0.0)
