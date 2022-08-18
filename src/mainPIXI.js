@@ -1,24 +1,9 @@
-//import {blah} from "./src/delete";
+
+//document.addEventListener( 'DOMContentLoaded', init);
+
+export function init(){ 
 
 
-document.addEventListener( 'DOMContentLoaded', init /* waitInit */);
-// setTimeout(() => {
-//     document.addEventListener( 'DOMContentLoaded', init );
-// },
-//     10
-// )
-
-function waitInit(){
-    setTimeout(() => {
-        init(); // <---------------
-    },
-        20
-    )
-}
-
-/* export  */function init(){ //I mey be able to use in react
-
-    //blah()
 
     const canvasElement = document.getElementById("canvas-1");
 
@@ -32,7 +17,7 @@ function waitInit(){
     const point = new PIXI.Point(0, 0);
     getMousePos(app.view, point);
 
-    const shader = new PIXI.Filter(getVert(), getFrag(), getUniforms(source.texture, point, 0.2, -3.0, 480/854)); 
+    const shader = new PIXI.Filter(getVert(), getFrag(), getUniforms(source.texture, point, 0.2, 6.0, 480/854)); 
     const grainFilter = new PIXI.Filter(
         getVert(), 
         getGrainFrag(), 
@@ -50,20 +35,6 @@ function waitInit(){
     destination.filters = [
         grainFilter,        
         shader,
-
-        // new PIXI.filters.OldFilmFilter({
-        //     sepia: 0.0,
-        //     noise: 0.08,
-        //     noiseSize: 1.0,
-        //     scratch: 0.0,
-        //     scratchDensity: 0.0, 
-        //     scratchWidth: 0.0,
-        //     vignetting: 0.4,
-        //     vignettingAlpha: 0.5,
-        //     vignettingBlur: 0.3
-        // }, 
-        //     123
-        // )
     ];
 
     setInterval(() => {
@@ -79,17 +50,20 @@ function waitInit(){
 
     app.stage.addChild(destination);   
 
-    document.body.appendChild(makeButton("+", +0.3, shader.uniforms));
-    document.body.appendChild(makeButton("-", -0.3, shader.uniforms));
+    //document.body.appendChild(makeButton("+", +0.3, shader.uniforms));
+    //document.body.appendChild(makeButton("-", -0.3, shader.uniforms));
 
-
+    const buttonPlus = document.getElementById("button+");
+    buttonPlus.onclick = () => handleClickPlusMinus(+1.0, shader.uniforms);
+    const buttonMinus = document.getElementById("button-");
+    buttonMinus.onclick = () => handleClickPlusMinus(-1.0, shader.uniforms);
 }
 
 
 const handleClickPlusMinus = (increment, uniforms) =>{
     console.log("clicked");
-    uniforms.distortion = Math.min(Math.max(uniforms.distortion + increment, -3.0), 3.0);
-    console.log(uniforms.distortion);
+    uniforms.power = Math.min(Math.max(uniforms.power + increment, 1.0), 10.0);
+    console.log(uniforms.power);
     
     
 }
@@ -128,12 +102,12 @@ const getMousePos = (element, pixiPoint) => {
     return pixiPoint;
 }
 
-const getUniforms = (tex, mousePos, circleRad, distortion, aspectRatio) => {
+const getUniforms = (tex, mousePos, circleRad, power, aspectRatio) => {
     return {
         sourceTex: tex,
         point: mousePos,
         radius: circleRad,
-        distortion: distortion,
+        power: power,
         aspectRatio: aspectRatio
     }
 }
@@ -168,6 +142,7 @@ uniform vec2 point;
 uniform float radius;    
 //uniform vec2 resolution;
 uniform float aspectRatio;
+uniform float power;
 
 float uvDistFromPoint(vec2 uv){
     vec2 relative = uv - point;
@@ -193,7 +168,7 @@ void main(){
     float blendRatio = dist/radius; 
     if(dist == 0.) blendRatio = 0.;
 
-    float alpha = getRatio(blendRatio, 6.0);
+    float alpha = getRatio(blendRatio, power);//6.0);
 
     float effectAngle = 2. * 3.14 * alpha;
 
