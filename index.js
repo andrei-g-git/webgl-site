@@ -7,17 +7,57 @@ function init(){
     const app = new PIXI.Application({width: 720, height: 480, view: canvasElement});
     document.body.appendChild(app.view);
 
-    const destination = makeVideoSprite("video-5.mp4", app);
-    const source = makeVideoSprite("video-2.mp4", app);
+    const destination = makeVideoSprite(/* "video-5.mp4" */"video-2.mp4", app);
+    const source = makeVideoSprite(/* "video-2.mp4" */"video-5.mp4", app);
+
 
     const point = new PIXI.Point(0, 0);
     getMousePos(app.view, point);
 
     const shader = new PIXI.Filter(getVert(), getFrag(), getUniforms(source.texture, point, 0.2, -3.0, 480/854)); 
+    const grainFilter = new PIXI.Filter(
+        getVert(), 
+        getGrainFrag(), 
+        {
+            time: 1.0
+        }
+    );
 
+    // //
+    // source.filters = [
+    //     grainFilter
+    // ];
+
+    //
     destination.filters = [
-        shader
+        grainFilter,        
+        shader,
+
+        // new PIXI.filters.OldFilmFilter({
+        //     sepia: 0.0,
+        //     noise: 0.08,
+        //     noiseSize: 1.0,
+        //     scratch: 0.0,
+        //     scratchDensity: 0.0, 
+        //     scratchWidth: 0.0,
+        //     vignetting: 0.4,
+        //     vignettingAlpha: 0.5,
+        //     vignettingBlur: 0.3
+        // }, 
+        //     123
+        // )
     ];
+
+    setInterval(() => {
+        destination.filters[0].uniforms.time = new Date().getMilliseconds();//Math.random();
+        //source.filters[0].uniforms.time = new Date().getMilliseconds();
+        //destination.filters[0].uniforms.sourceTex = source.texture;
+        app.stage.removeChildAt(0);
+        app.stage.addChildAt(destination, 0);
+    }, 
+        50
+    );
+
 
     app.stage.addChild(destination);   
 
@@ -143,8 +183,11 @@ void main(){
 
     vec2 result = finalFunction(newRadius, angle, point);
 
-    vec4 col = texture2D(uSampler, result);
-    vec4 src = texture2D(sourceTex, result); 
+    // vec4 col = texture2D(uSampler, result);
+    // vec4 src = texture2D(sourceTex, result); 
+    
+    vec4 col = texture2D(sourceTex, result);
+    vec4 src = texture2D(uSampler, result); 
 
     alpha = getRatio(blendRatio, 2.0);
 
@@ -152,6 +195,49 @@ void main(){
 }
     `;    
 }
+
+
+const getGrainFrag = () => {
+    return `
+varying vec2 vTextureCoord;
+uniform sampler2D uSampler;
+//uniform sampler2D sourceTex;
+uniform float time;
+
+void main(){
+    float aspectRatio = 480./854.;
+	vec2 uv = vTextureCoord.xy;// / vec2(854., 480.);
+    
+    vec4 color = texture2D(uSampler, uv);
+
+    float strength = 16.0;
+    
+    float x = (uv.x + 4.0 ) * (uv.y + 4.0 ) * (time * 10.0);
+	vec4 grain = vec4(mod((mod(x, 13.0) + 1.0) * (mod(x, 123.0) + 1.0), 0.01)-0.005) * strength;
+    
+    // if(abs(uv.x - 0.5) < 0.002)
+    //     color = vec4(0.0);
+    
+    // if(uv.x > 0.5)
+    // {
+    // 	grain = 1.0 - grain;
+	// 	color *= grain;
+    // }
+    // else
+    // {
+	// 	color += grain;
+    // } 
+    
+    grain = 1.0 - grain;
+    color *= grain;
+
+    gl_FragColor = color;
+}
+
+   
+    `;
+}
+
 
 
 
