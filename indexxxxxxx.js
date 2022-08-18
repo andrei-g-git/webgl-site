@@ -1,7 +1,12 @@
+//import {blah} from "./src/delete";
+
 
 document.addEventListener( 'DOMContentLoaded', init );
 
 function init(){
+
+    //blah()
+
     const canvasElement = document.getElementById("canvas");
 
     const app = new PIXI.Application({width: 720, height: 480, view: canvasElement});
