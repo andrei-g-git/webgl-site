@@ -5,7 +5,7 @@ export function init(){
 
 
 
-    const canvasElement = document.getElementById("canvas-1");
+    const canvasElement = document.getElementById("landing-page-canvas");
 
     const app = new PIXI.Application({width: 854, height: 480, view: canvasElement});
     document.body.appendChild(app.view);

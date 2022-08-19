@@ -1,0 +1,13 @@
+// .landing-page-container{
+//     order: -1;
+// }
+
+.landing-page-container{
+    position: absolute;
+    top: 0;
+
+    .landing-page-canvas{
+        position: absolute;
+        top: 0;
+    }
+}
