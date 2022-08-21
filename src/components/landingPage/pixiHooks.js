@@ -4,13 +4,13 @@ import { getDefaultVert } from "../../gl/passthrough";
 import { getTwirlFrag, setTwirlUniforms } from "../../gl/twirl";
 import { getGrainFrag, setGrainUniforms } from "../../gl/grain";
 
-export const useOverlayAndGrainFilter = (destinationPath, sourcePath, canvasId) => {
+export const useOverlayAndGrainFilter = (destinationPath, sourcePath, canvasId, /* props */width) => {
 
     useEffect(() => {    
         const canvasElement = document.getElementById(canvasId);
         if(canvasElement){
 
-            const app = new PIXI.Application({width: 854, height: 480, view: canvasElement});
+            const app = new PIXI.Application({width: width/* props.width */, height: window.innerHeight/* 1080 */, view: canvasElement});
             document.body.appendChild(app.view);
 
             const destination = makeVideoSprite(destinationPath,  app);
@@ -58,7 +58,7 @@ export const useOverlayAndGrainFilter = (destinationPath, sourcePath, canvasId) 
 
 
     }, 
-        []
+        [/* props.width */]
     );
 
 };
